@@ -127,30 +127,15 @@ id, title, created_at,
 
             if (taskError) throw taskError
 
-            // 2. Fetch Freelancer Current Profile to calculate new score
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('reliability_score, completed_tasks_count')
-                .eq('id', reviewFreelancerId)
-                .single()
+            // 2 & 3. Update Freelancer Score & Count via RPC (bypassing RLS)
+            const { error: profileError } = await supabase.rpc('update_freelancer_score', {
+                p_freelancer_id: reviewFreelancerId,
+                p_rating: rating
+            })
 
-            if (profile) {
-                const currentScore = profile.reliability_score || 0
-                const currentCount = profile.completed_tasks_count || 0
-
-                // Simple moving average calculation for 1-5 star rating
-                // ((current_avg * current_count) + new_rating) / (current_count + 1)
-                const newScore = ((currentScore * currentCount) + rating) / (currentCount + 1)
-                const roundedScore = Math.round(newScore * 10) / 10 // Round to 1 decimal place
-
-                // 3. Update Freelancer Score & Count
-                await supabase
-                    .from('profiles')
-                    .update({
-                        reliability_score: roundedScore,
-                        completed_tasks_count: currentCount + 1
-                    })
-                    .eq('id', reviewFreelancerId)
+            if (profileError) {
+                console.error("Error updating profile score:", profileError)
+                // Continue anyway to mark task complete, but log error
             }
 
             alert("Task marked as complete and review submitted!")
