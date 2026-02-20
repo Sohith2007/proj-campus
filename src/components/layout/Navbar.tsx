@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function Navbar() {
     const { session, signOut } = useAuth()
@@ -14,6 +15,7 @@ export default function Navbar() {
                 </Link>
 
                 <div className="flex items-center gap-4">
+                    <ModeToggle />
                     {session ? (
                         <>
                             <Link to="/tasks" className="text-sm font-medium hover:text-primary">Find Work</Link>

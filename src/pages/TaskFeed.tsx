@@ -20,6 +20,7 @@ export default function TaskFeed() {
             const { data, error } = await supabase
                 .from("tasks")
                 .select("*, profiles:client_id(full_name)")
+                .eq("status", "OPEN")
                 .order("created_at", { ascending: false })
 
             if (data) setTasks(data)
