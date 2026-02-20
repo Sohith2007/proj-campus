@@ -82,27 +82,19 @@ export default function Chat() {
         e.preventDefault()
         if (!newMessage.trim() || !session?.user?.id || !otherUser?.id || !taskId) return
 
-        const tempMsg = {
-            id: 'temp-' + Date.now(),
-            sender_id: session.user.id,
-            receiver_id: otherUser.id,
-            content: newMessage,
-            created_at: new Date().toISOString()
-        }
-
-        setMessages([...messages, tempMsg])
-        setNewMessage("")
+        const msgContent = newMessage;
+        setNewMessage("") // Clear input immediately for UX
 
         const { error } = await supabase.from('messages').insert({
             task_id: taskId,
             sender_id: session.user.id,
             receiver_id: otherUser.id,
-            content: tempMsg.content
+            content: msgContent
         })
 
         if (error) {
             console.error("Failed to send message", error)
-            // Optionally remove the temp message here if failed
+            setNewMessage(msgContent) // Put message back in input if it failed to send
         }
     }
 
