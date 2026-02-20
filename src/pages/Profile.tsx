@@ -25,6 +25,8 @@ export default function Profile() {
     const [year, setYear] = useState("")
     const [skills, setSkills] = useState("")
     const [bio, setBio] = useState("")
+    const [reliabilityScore, setReliabilityScore] = useState(0)
+    const [completedCount, setCompletedCount] = useState(0)
 
     const fetchProfile = async () => {
         if (!session?.user?.id) return
@@ -44,6 +46,8 @@ export default function Profile() {
                 setSkills(data.skills ? data.skills.join(', ') : "")
                 setBio(data.short_bio || "")
                 setAvailability(data.availability_status || "Busy")
+                setReliabilityScore(data.reliability_score || 0)
+                setCompletedCount(data.completed_tasks_count || 0)
             }
         } catch (err: any) {
             console.error("Error fetching profile", err)
@@ -111,6 +115,19 @@ export default function Profile() {
         "5": "Masters / PhD"
     }
 
+    const performanceSummary = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="border rounded-lg p-4 bg-muted/30">
+                <p className="text-sm text-muted-foreground">Completed Gigs</p>
+                <p className="text-2xl font-bold">{completedCount}</p>
+            </div>
+            <div className="border rounded-lg p-4 bg-muted/30">
+                <p className="text-sm text-muted-foreground">Reliability Score</p>
+                <p className="text-2xl font-bold">{reliabilityScore.toFixed(1)} / 5.0</p>
+            </div>
+        </div>
+    )
+
     return (
         <div className="container mx-auto py-10 px-4 max-w-3xl">
             <Card>
@@ -139,6 +156,8 @@ export default function Profile() {
                                                 availability === 'Free Weekends' ? '📅 Free Weekends' : '🔴 Busy'}
                                 </Badge>
                             </div>
+
+                            {performanceSummary}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6">
                                 <div>
@@ -183,6 +202,8 @@ export default function Profile() {
                         </div>
                     ) : (
                         <form onSubmit={handleSave} className="space-y-8">
+                            {performanceSummary}
+
                             {/* Availability Status System */}
                             <div className="space-y-4 bg-muted/30 p-5 rounded-lg border border-border">
                                 <div>
