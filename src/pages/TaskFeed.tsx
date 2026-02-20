@@ -54,8 +54,11 @@ export default function TaskFeed() {
                                     <SelectItem value="all">All Categories</SelectItem>
                                     <SelectItem value="coding">💻 Coding Help</SelectItem>
                                     <SelectItem value="design">🎨 Graphic Design</SelectItem>
-                                    <SelectItem value="tutoring">📚 Tutoring</SelectItem>
-                                    <SelectItem value="delivery">🏃 Delivery</SelectItem>
+                                    <SelectItem value="tutoring">📚 Tutoring / Doubt Session</SelectItem>
+                                    <SelectItem value="notes">📝 Notes / Documentation</SelectItem>
+                                    <SelectItem value="delivery">🏃 Delivery (Printouts/Food)</SelectItem>
+                                    <SelectItem value="data">📊 Data Collection</SelectItem>
+                                    <SelectItem value="event">🎉 Event Help</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
