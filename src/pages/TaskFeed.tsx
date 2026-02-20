@@ -11,6 +11,9 @@ export default function TaskFeed() {
     const [tasks, setTasks] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
+    const [category, setCategory] = useState("all")
+    const [maxBudget, setMaxBudget] = useState("")
+    const [priority, setPriority] = useState("any")
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -27,8 +30,13 @@ export default function TaskFeed() {
     }, [])
 
     const filteredTasks = tasks.filter((task) => {
-        return task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (task.required_skills && task.required_skills.some((skill: string) => skill.toLowerCase().includes(searchTerm.toLowerCase())))
+        const matchesCategory = category === "all" || task.category === category
+        const matchesBudget = !maxBudget || task.budget <= parseInt(maxBudget)
+        const matchesPriority = priority === "any" || task.priority_level === priority
+
+        return matchesSearch && matchesCategory && matchesBudget && matchesPriority
     })
 
     return (
@@ -40,7 +48,7 @@ export default function TaskFeed() {
                     <div className="space-y-4">
                         <div>
                             <label className="text-sm font-medium mb-1.5 block">Category</label>
-                            <Select defaultValue="all">
+                            <Select value={category} onValueChange={setCategory}>
                                 <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Categories</SelectItem>
@@ -53,11 +61,16 @@ export default function TaskFeed() {
                         </div>
                         <div>
                             <label className="text-sm font-medium mb-1.5 block">Max Budget (₹)</label>
-                            <Input type="number" placeholder="500" />
+                            <Input
+                                type="number"
+                                placeholder="500"
+                                value={maxBudget}
+                                onChange={(e) => setMaxBudget(e.target.value)}
+                            />
                         </div>
                         <div>
                             <label className="text-sm font-medium mb-1.5 block">Priority</label>
-                            <Select defaultValue="any">
+                            <Select value={priority} onValueChange={setPriority}>
                                 <SelectTrigger><SelectValue placeholder="Any Priority" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="any">Any Priority</SelectItem>
