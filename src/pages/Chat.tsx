@@ -9,7 +9,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Send } from "lucide-react"
 
 export default function Chat() {
-    const { id: taskId, receiverId } = useParams()
+    const { id: rawId, receiverId: rawReceiverId } = useParams()
+    const taskId = rawId?.trim()
+    const receiverId = rawReceiverId?.trim()
     const { session } = useAuth()
 
     const [messages, setMessages] = useState<any[]>([])

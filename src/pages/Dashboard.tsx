@@ -72,25 +72,25 @@ export default function Dashboard() {
 
             // 5. Freelancer: Completed Tasks
             const { data: fCompleted } = await supabase.from('tasks')
-                .select('*, profiles:client_id(full_name)')
+                .select('*, profiles!client_id(full_name)')
                 .eq('assigned_freelancer_id', uid)
                 .eq('status', 'COMPLETED')
-                .order('updated_at', { ascending: false })
+                .order('created_at', { ascending: false })
             if (fCompleted) setCompletedGigs(fCompleted)
 
             // 6. Client: Ongoing Tasks (and Submitted)
             const { data: ongoingTasks } = await supabase.from('tasks')
-                .select('*, profiles:assigned_freelancer_id(full_name)')
+                .select('*, profiles!assigned_freelancer_id(full_name)')
                 .eq('client_id', uid)
                 .in('status', ['ASSIGNED', 'SUBMITTED'])
             if (ongoingTasks) setOngoingClientTasks(ongoingTasks)
 
             // 7. Client: Completed Tasks
             const { data: cCompleted } = await supabase.from('tasks')
-                .select('*, profiles:assigned_freelancer_id(full_name)')
+                .select('*, profiles!assigned_freelancer_id(full_name)')
                 .eq('client_id', uid)
                 .eq('status', 'COMPLETED')
-                .order('updated_at', { ascending: false })
+                .order('created_at', { ascending: false })
             if (cCompleted) setCompletedClientTasks(cCompleted)
 
             // 8. Client: Action Required (Tasks you posted that have pending applications)
@@ -138,16 +138,16 @@ id, title, created_at,
                 const currentScore = profile.reliability_score || 0
                 const currentCount = profile.completed_tasks_count || 0
 
-                // Simple moving average calculation for score MVP
-                // Convert 1-5 star rating to percentage (e.g. 5 = 100, 4 = 80)
-                const ratingPercentage = (rating / 5) * 100
-                const newScore = Math.round(((currentScore * currentCount) + ratingPercentage) / (currentCount + 1))
+                // Simple moving average calculation for 1-5 star rating
+                // ((current_avg * current_count) + new_rating) / (current_count + 1)
+                const newScore = ((currentScore * currentCount) + rating) / (currentCount + 1)
+                const roundedScore = Math.round(newScore * 10) / 10 // Round to 1 decimal place
 
                 // 3. Update Freelancer Score & Count
                 await supabase
                     .from('profiles')
                     .update({
-                        reliability_score: newScore,
+                        reliability_score: roundedScore,
                         completed_tasks_count: currentCount + 1
                     })
                     .eq('id', reviewFreelancerId)
@@ -155,8 +155,13 @@ id, title, created_at,
 
             alert("Task marked as complete and review submitted!")
 
-            // Remove from local ongoing tasks state
+            // Update local states: move from ongoing to completed
+            const completedTaskDetails = ongoingClientTasks.find(t => t.id === taskToReview)
             setOngoingClientTasks(prev => prev.filter(t => t.id !== taskToReview))
+
+            if (completedTaskDetails) {
+                setCompletedClientTasks(prev => [{ ...completedTaskDetails, status: 'COMPLETED' }, ...prev])
+            }
 
             // Reset modal
             setRating(0)
@@ -263,7 +268,7 @@ id, title, created_at,
                                                 {task.status === 'SUBMITTED' ? 'Under Review' : 'In Progress'}
                                             </Badge>
                                             <div className="flex gap-2">
-                                                <Link to={`/ chat / ${task.id} `}>
+                                                <Link to={`/chat/${task.id}`}>
                                                     <Button size="sm" variant="outline">Message Client</Button>
                                                 </Link>
                                                 {task.status === 'ASSIGNED' && (
@@ -303,7 +308,7 @@ id, title, created_at,
                                         <div className="flex flex-col items-end gap-2">
                                             <Badge variant="outline">Pending</Badge>
                                             {app.tasks?.client_id && (
-                                                <Link to={`/ chat / ${app.task_id}/${app.tasks.client_id}`}>
+                                                <Link to={`/chat/${app.task_id}/${app.tasks.client_id}`}>
                                                     <Button size="sm" variant="ghost">Message Client</Button>
                                                 </Link>
                                             )}
